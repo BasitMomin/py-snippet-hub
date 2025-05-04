@@ -1,0 +1,104 @@
+'''
+Feature Engineering Helpers Snippet
+-----------------------------------
+
+Functions for:
+- Extracting date/time parts from datetime columns
+- Aggregating numerical columns by grouping
+- Encoding categorical variables (One-Hot and Label Encoding)
+
+Usage:
+    from feature_engineering_helpers import (
+        extract_datetime_features,
+        aggregate_group,
+        label_encode_columns,
+        one_hot_encode
+    )
+
+Placeholders:
+    df: pandas.DataFrame
+    column or columns: column name(s) to process
+    agg_dict: dict mapping column names to aggregation functions
+'''
+
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+
+
+def extract_datetime_features(df: pd.DataFrame, column: str, drop_original: bool = False) -> pd.DataFrame:
+    """
+    Extract year, month, day, weekday, hour, minute from a datetime column.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        column (str): Name of the datetime column.
+        drop_original (bool): If True, drop the original datetime column.
+
+    Returns:
+        pd.DataFrame: DataFrame with new datetime feature columns.
+    """
+    df_out = df.copy()
+    dt = pd.to_datetime(df_out[column])
+    df_out[f"{column}_year"] = dt.dt.year
+    df_out[f"{column}_month"] = dt.dt.month
+    df_out[f"{column}_day"] = dt.dt.day
+    df_out[f"{column}_weekday"] = dt.dt.weekday
+    df_out[f"{column}_hour"] = dt.dt.hour
+    df_out[f"{column}_minute"] = dt.dt.minute
+    if drop_original:
+        df_out.drop(columns=[column], inplace=True)
+    return df_out
+
+
+def aggregate_group(df: pd.DataFrame, by: list[str], agg_dict: dict, suffix: str = "") -> pd.DataFrame:
+    """
+    Perform groupby aggregation and merge results back to the original DataFrame.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        by (list[str]): Columns to group by.
+        agg_dict (dict): Mapping of column names to agg functions, e.g. {'col': 'mean'}.
+        suffix (str): Suffix to append to new aggregated column names.
+
+    Returns:
+        pd.DataFrame: DataFrame with new aggregated features.
+    """
+    df_out = df.copy()
+    grouped = df_out.groupby(by).agg(agg_dict)
+    grouped.columns = [f"{col}_{func}{('_'+suffix) if suffix else ''}" for col, func in grouped.columns]
+    grouped = grouped.reset_index()
+    df_merged = df_out.merge(grouped, on=by, how='left')
+    return df_merged
+
+
+def label_encode_columns(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+    """
+    Label encode multiple categorical columns.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        columns (list[str]): List of column names to encode.
+
+    Returns:
+        pd.DataFrame: DataFrame with label-encoded columns.
+    """
+    df_out = df.copy()
+    for col in columns:
+        le = LabelEncoder()
+        df_out[col] = le.fit_transform(df_out[col].astype(str))
+    return df_out
+
+
+def one_hot_encode(df: pd.DataFrame, columns: list[str], drop_first: bool = False) -> pd.DataFrame:
+    """
+    One-hot encode specified categorical columns.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        columns (list[str]): List of column names to encode.
+        drop_first (bool): Whether to drop the first level to avoid multicollinearity.
+
+    Returns:
+        pd.DataFrame: DataFrame with one-hot encoded columns.
+    """
+    return pd.get_dummies(df, columns=columns, drop_first=drop_first)

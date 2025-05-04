@@ -1,0 +1,81 @@
+"""
+filtering_selection.py
+
+General-purpose functions for DataFrame column selection and row filtering.
+Replace placeholder variables as needed.
+
+Functions:
+- select_columns(df, cols): returns DataFrame with specified columns.
+- filter_rows(df, condition): returns DataFrame filtered by boolean condition.
+- select_rows_by_index(df, start, end): returns DataFrame slice using iloc.
+- select_rows_and_columns(df, row_idx, col_idx): returns element(s) via iloc.
+- filter_by_multiple_conditions(df, conditions): logical AND/OR.
+"""
+
+import pandas as pd
+
+def select_columns(df: pd.DataFrame, cols: list) -> pd.DataFrame:
+    """
+    Select specified columns from DataFrame.
+    :param df: Input DataFrame.
+    :param cols: List of column names to select.
+    :return: DataFrame with selected columns.
+    """
+    return df[cols]
+
+def filter_rows(df: pd.DataFrame, condition) -> pd.DataFrame:
+    """
+    Filter rows based on a boolean condition.
+    :param df: Input DataFrame.
+    :param condition: Boolean mask or expression, e.g., df['age'] > 30.
+    :return: Filtered DataFrame.
+    """
+    return df[condition]
+
+def select_rows_by_index(df: pd.DataFrame, start: int, end: int) -> pd.DataFrame:
+    """
+    Slice rows by integer-location indices.
+    :param df: Input DataFrame.
+    :param start: Starting index.
+    :param end: Ending index (exclusive).
+    :return: Sliced DataFrame.
+    """
+    return df.iloc[start:end]
+
+def select_rows_and_columns(df: pd.DataFrame, row_idx, col_idx):
+    """
+    Select specific rows and columns by integer-location.
+    :param df: Input DataFrame.
+    :param row_idx: Row index or list of indices.
+    :param col_idx: Column index or list of indices.
+    :return: Selected element(s).
+    """
+    return df.iloc[row_idx, col_idx]
+
+def filter_by_multiple_conditions(df: pd.DataFrame, conditions: list, operator: str = 'and') -> pd.DataFrame:
+    """
+    Filter DataFrame by combining multiple boolean conditions.
+    :param df: Input DataFrame.
+    :param conditions: List of boolean masks, e.g., [df['age']>30, df['salary']>50000].
+    :param operator: 'and' or 'or'.
+    :return: Filtered DataFrame.
+    """
+    if operator == 'and':
+        combined = conditions[0]
+        for cond in conditions[1:]:
+            combined &= cond
+    elif operator == 'or':
+        combined = conditions[0]
+        for cond in conditions[1:]:
+            combined |= cond
+    else:
+        raise ValueError("Operator must be 'and' or 'or'")
+    return df[combined]
+
+# Example usage:
+# df = pd.read_csv('path/to/your/file.csv')
+# df_selected = select_columns(df, ['col1', 'col2'])
+# df_filtered = filter_rows(df, df['col1'] > 100)
+# df_slice = select_rows_by_index(df, 0, 5)
+# element = select_rows_and_columns(df, [0,1], [2,3])
+# df_multi = filter_by_multiple_conditions(df, [df['col1']>100, df['col2']<50], operator='and')

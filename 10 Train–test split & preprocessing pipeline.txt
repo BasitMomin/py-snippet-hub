@@ -1,0 +1,92 @@
+'''
+Train–Test Split & Preprocessing Pipeline Snippet
+------------------------------------------------
+
+Functions for:
+- Splitting a DataFrame into train and test sets
+- Building a generic scikit-learn preprocessing pipeline with numeric and categorical transformers
+
+Usage:
+    from train_test_pipeline import (
+        train_test_split_df,
+        create_preprocessing_pipeline
+    )
+
+Placeholders:
+    df: pandas.DataFrame
+    features: list[str], feature column names
+    target: str, target column name
+    test_size: float, proportion for test set
+    random_state: int, random seed
+    numeric_features: list[str]
+    categorical_features: list[str]
+    numeric_transformer: sklearn Transformer (e.g. StandardScaler())
+    categorical_transformer: sklearn Transformer (e.g. OneHotEncoder(handle_unknown='ignore'))
+    remainder: str, what to do with other columns ('drop' or 'passthrough')
+'''
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+
+
+def train_test_split_df(
+    df: pd.DataFrame,
+    features: list[str],
+    target: str,
+    test_size: float = 0.2,
+    random_state: int = 42
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+    """
+    Split a DataFrame into train and test sets.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        features (list[str]): List of feature column names.
+        target (str): Name of the target column.
+        test_size (float): Proportion of data to use for the test set.
+        random_state (int): Random seed for reproducibility.
+
+    Returns:
+        X_train (pd.DataFrame), X_test (pd.DataFrame), y_train (pd.Series), y_test (pd.Series)
+    """
+    X = df[features]
+    y = df[target]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y,
+        test_size=test_size,
+        random_state=random_state
+    )
+    return X_train, X_test, y_train, y_test
+
+
+def create_preprocessing_pipeline(
+    numeric_features: list[str],
+    categorical_features: list[str],
+    numeric_transformer,
+    categorical_transformer,
+    remainder: str = 'drop'
+) -> Pipeline:
+    """
+    Build a scikit-learn ColumnTransformer pipeline for preprocessing.
+
+    Parameters:
+        numeric_features (list[str]): Names of numeric columns.
+        categorical_features (list[str]): Names of categorical columns.
+        numeric_transformer: Transformer for numeric features (e.g. StandardScaler()).
+        categorical_transformer: Transformer for categorical features (e.g. OneHotEncoder()).
+        remainder (str): What to do with remaining columns ('drop' or 'passthrough').
+
+    Returns:
+        Pipeline: A sklearn Pipeline with a 'preprocessor' step.
+    """
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', numeric_transformer, numeric_features),
+            ('cat', categorical_transformer, categorical_features)
+        ],
+        remainder=remainder
+    )
+    pipeline = Pipeline(steps=[('preprocessor', preprocessor)])
+    return pipeline

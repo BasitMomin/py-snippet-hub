@@ -1,0 +1,102 @@
+'''
+Outlier Detection and Treatment Snippet
+---------------------------------------
+
+Functions for:
+- Detecting outliers using the IQR method
+- Removing outliers based on IQR
+- Winsorizing data to cap extreme values
+
+Usage:
+    from outlier_detection_treatment import (
+        detect_outliers_iqr,
+        remove_outliers_iqr,
+        winsorize_series,
+        winsorize_dataframe
+    )
+
+Placeholders:
+    df: pandas.DataFrame
+    column: str, name of the column
+'''
+
+import pandas as pd
+import numpy as np
+from scipy.stats import mstats
+
+def detect_outliers_iqr(df: pd.DataFrame, column: str, factor: float = 1.5) -> pd.Series:
+    """
+    Detect outliers in a DataFrame column using the IQR method.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        column (str): Column name to check for outliers.
+        factor (float): Multiplier for the IQR to define outlier thresholds.
+
+    Returns:
+        pd.Series: Boolean mask where True indicates an outlier.
+    """
+    q1 = df[column].quantile(0.25)
+    q3 = df[column].quantile(0.75)
+    iqr = q3 - q1
+    lower_bound = q1 - factor * iqr
+    upper_bound = q3 + factor * iqr
+    return (df[column] < lower_bound) | (df[column] > upper_bound)
+
+
+def remove_outliers_iqr(df: pd.DataFrame, column: str, factor: float = 1.5, inplace: bool = False) -> pd.DataFrame:
+    """
+    Remove outliers from a DataFrame column using the IQR method.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        column (str): Column name to remove outliers from.
+        factor (float): Multiplier for the IQR to define outlier thresholds.
+        inplace (bool): If True, remove in-place; else return a new DataFrame.
+
+    Returns:
+        pd.DataFrame: DataFrame with outliers removed.
+    """
+    mask = detect_outliers_iqr(df, column, factor)
+    if inplace:
+        df.drop(df[mask].index, inplace=True)
+        return df
+    else:
+        return df.loc[~mask].copy()
+
+
+def winsorize_series(series: pd.Series, limits: tuple = (0.05, 0.05)) -> pd.Series:
+    """
+    Winsorize a pandas Series by capping extreme values.
+
+    Parameters:
+        series (pd.Series): Input data series.
+        limits (tuple): Lower and upper percentile limits to cap values.
+
+    Returns:
+        pd.Series: Winsorized series.
+    """
+    return pd.Series(
+        mstats.winsorize(series, limits=limits),
+        index=series.index,
+        name=series.name
+    )
+
+
+def winsorize_dataframe(df: pd.DataFrame, columns: list[str] = None, limits: tuple = (0.05, 0.05)) -> pd.DataFrame:
+    """
+    Winsorize multiple columns in a DataFrame.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        columns (list[str] or None): List of columns to winsorize. If None, all numeric columns.
+        limits (tuple): Lower and upper percentile limits.
+
+    Returns:
+        pd.DataFrame: DataFrame with winsorized columns.
+    """
+    df_wins = df.copy()
+    cols = columns if columns is not None else df.select_dtypes(include=np.number).columns
+    for col in cols:
+        df_wins[col] = winsorize_series(df_wins[col], limits)
+    return df_wins

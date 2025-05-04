@@ -1,0 +1,86 @@
+Thought for a couple of seconds
+
+
+Here’s your **Environment Setup** snippet, split into two parts:
+
+1. **`requirements.txt` template**
+2. **`env_setup.py`** with all the standard imports
+
+---
+
+```text
+# requirements.txt
+# Specify versions as needed; you can pin exact versions or leave open-ended.
+pandas>=1.5.0
+numpy>=1.24.0
+matplotlib>=3.6.0
+seaborn>=0.12.0
+scikit-learn>=1.2.0
+jupyterlab>=4.0.0
+# add more libraries your projects commonly use, e.g.:
+# sqlalchemy>=2.0.0
+# xgboost>=1.7.0
+```
+
+```bash
+# (Optional) Quick setup commands:
+# Create and activate a virtual environment
+python3 -m venv venv
+# On Linux / macOS:
+source venv/bin/activate
+# On Windows:
+# venv\Scripts\activate
+
+# Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+```python
+# env_setup.py
+"""
+General-purpose environment setup module.
+Just import this at the top of your notebooks/scripts, and you’ll have
+all core libraries ready to go.
+"""
+
+# Data manipulation
+import pandas as pd   # pip install pandas
+import numpy as np    # pip install numpy
+
+# Visualization
+import matplotlib.pyplot as plt   # pip install matplotlib
+import seaborn as sns             # pip install seaborn
+
+# Machine learning
+from sklearn.model_selection import train_test_split   # pip install scikit-learn
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.pipeline import Pipeline
+
+# (Optional) Display settings
+pd.set_option('display.max_rows', 100)
+pd.set_option('display.max_columns', 50)
+pd.set_option('display.width', 1000)
+sns.set_style('whitegrid')
+
+def initialize_plotting(figsize=(10, 6), dpi=100):
+    """
+    Call at the top of analysis scripts to set global plotting params.
+    Example:
+        initialize_plotting(figsize=(12,8), dpi=120)
+    """
+    plt.rcParams['figure.figsize'] = figsize
+    plt.rcParams['figure.dpi'] = dpi
+```
+
+**How to use**
+
+* Replace or extend `requirements.txt` with any other libraries you need.
+* In each new project or notebook, start with:
+
+  ```python
+  from env_setup import *
+  initialize_plotting()
+  ```
+
+  and you’re all set!

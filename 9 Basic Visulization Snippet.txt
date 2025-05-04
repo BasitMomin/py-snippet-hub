@@ -1,0 +1,160 @@
+'''
+Basic Visualization Snippets
+---------------------------
+
+Reusable plotting functions for common chart types:
+- Line plot
+- Bar chart
+- Histogram
+- Scatter plot
+
+Each function accepts:
+    df: pandas.DataFrame or pd.Series
+    x, y: column names or series
+    title, xlabel, ylabel: strings
+    figsize: tuple
+    **kwargs: additional plt.* parameters
+
+Usage:
+    from basic_visualization_snippets import (
+        plot_line,
+        plot_bar,
+        plot_histogram,
+        plot_scatter
+    )
+
+Placeholders:
+    df: your DataFrame
+    x, y: column names (strings) or Series
+    title, xlabel, ylabel: descriptive labels
+    bins: number of bins for histogram
+    **kwargs: e.g., color, linestyle, marker etc.
+'''
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+
+def plot_line(df: pd.DataFrame, x: str, y: str,
+              title: str = None,
+              xlabel: str = None,
+              ylabel: str = None,
+              figsize: tuple = (10, 6),
+              **kwargs) -> None:
+    """
+    Create a line plot from DataFrame columns.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        x (str): Column name for x-axis.
+        y (str): Column name for y-axis.
+        title (str): Plot title.
+        xlabel (str): Label for x-axis.
+        ylabel (str): Label for y-axis.
+        figsize (tuple): Figure size (width, height).
+        **kwargs: Additional plt.plot() keyword args (e.g., color, linestyle).
+    """
+    plt.figure(figsize=figsize)
+    plt.plot(df[x], df[y], **kwargs)
+    if title:
+        plt.title(title)
+    if xlabel:
+        plt.xlabel(xlabel)
+    if ylabel:
+        plt.ylabel(ylabel)
+    plt.grid(True)
+    plt.show()
+
+
+def plot_bar(df: pd.DataFrame, x: str, y: str,
+             title: str = None,
+             xlabel: str = None,
+             ylabel: str = None,
+             figsize: tuple = (10, 6),
+             **kwargs) -> None:
+    """
+    Create a bar chart from DataFrame columns.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        x (str): Column name for categories (x-axis).
+        y (str): Column name for values (y-axis).
+        title (str): Plot title.
+        xlabel (str): Label for x-axis.
+        ylabel (str): Label for y-axis.
+        figsize (tuple): Figure size (width, height).
+        **kwargs: Additional plt.bar() keyword args (e.g., color).
+    """
+    plt.figure(figsize=figsize)
+    plt.bar(df[x], df[y], **kwargs)
+    if title:
+        plt.title(title)
+    if xlabel:
+        plt.xlabel(xlabel)
+    if ylabel:
+        plt.ylabel(ylabel)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_histogram(series: pd.Series,
+                   bins: int = 10,
+                   title: str = None,
+                   xlabel: str = None,
+                   ylabel: str = 'Frequency',
+                   figsize: tuple = (10, 6),
+                   **kwargs) -> None:
+    """
+    Create a histogram for a pandas Series.
+
+    Parameters:
+        series (pd.Series): Data to plot.
+        bins (int): Number of histogram bins.
+        title (str): Plot title.
+        xlabel (str): Label for x-axis.
+        ylabel (str): Label for y-axis.
+        figsize (tuple): Figure size (width, height).
+        **kwargs: Additional plt.hist() keyword args (e.g., density).
+    """
+    plt.figure(figsize=figsize)
+    plt.hist(series, bins=bins, **kwargs)
+    if title:
+        plt.title(title)
+    if xlabel:
+        plt.xlabel(xlabel)
+    if ylabel:
+        plt.ylabel(ylabel)
+    plt.grid(True)
+    plt.show()
+
+
+def plot_scatter(df: pd.DataFrame, x: str, y: str,
+                 title: str = None,
+                 xlabel: str = None,
+                 ylabel: str = None,
+                 figsize: tuple = (10, 6),
+                 **kwargs) -> None:
+    """
+    Create a scatter plot from DataFrame columns.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        x (str): Column name for x-axis.
+        y (str): Column name for y-axis.
+        title (str): Plot title.
+        xlabel (str): Label for x-axis.
+        ylabel (str): Label for y-axis.
+        figsize (tuple): Figure size (width, height).
+        **kwargs: Additional plt.scatter() keyword args (e.g., c, marker).
+    """
+    plt.figure(figsize=figsize)
+    plt.scatter(df[x], df[y], **kwargs)
+    if title:
+        plt.title(title)
+    if xlabel:
+        plt.xlabel(xlabel)
+    if ylabel:
+        plt.ylabel(ylabel)
+    plt.grid(True)
+    plt.show()

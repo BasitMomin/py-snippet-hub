@@ -1,0 +1,125 @@
+'''
+Correlation & Covariance Snippet
+--------------------------------
+
+Functions for:
+- Computing a correlation matrix
+- Computing a covariance matrix
+- Plotting a correlation heatmap
+- Retrieving top feature correlations
+
+Usage:
+    from correlation_covariance_helpers import (
+        compute_correlation_matrix,
+        compute_covariance_matrix,
+        plot_correlation_heatmap,
+        get_top_correlations
+    )
+
+Placeholders:
+    df: pandas.DataFrame
+    columns: list[str] or None (defaults to all numeric columns)
+    method: str, {'pearson', 'spearman', 'kendall'}
+'''
+
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+
+def compute_correlation_matrix(
+    df: pd.DataFrame,
+    columns: list[str] = None,
+    method: str = 'pearson'
+) -> pd.DataFrame:
+    """
+    Compute a correlation matrix for specified columns.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        columns (list[str] or None): Columns to include; if None, all numeric columns.
+        method (str): Correlation method ('pearson', 'spearman', 'kendall').
+
+    Returns:
+        pd.DataFrame: Correlation matrix.
+    """
+    cols = columns if columns is not None else df.select_dtypes(include=np.number).columns.tolist()
+    return df[cols].corr(method=method)
+
+
+def compute_covariance_matrix(
+    df: pd.DataFrame,
+    columns: list[str] = None
+) -> pd.DataFrame:
+    """
+    Compute a covariance matrix for specified columns.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame.
+        columns (list[str] or None): Columns to include; if None, all numeric columns.
+
+    Returns:
+        pd.DataFrame: Covariance matrix.
+    """
+    cols = columns if columns is not None else df.select_dtypes(include=np.number).columns.tolist()
+    return df[cols].cov()
+
+
+def plot_correlation_heatmap(
+    corr_matrix: pd.DataFrame,
+    figsize: tuple = (10, 8),
+    annot: bool = True,
+    fmt: str = '.2f',
+    cmap: str = None,
+    title: str = 'Correlation Heatmap'
+) -> plt.Figure:
+    """
+    Plot a heatmap of the correlation matrix.
+
+    Parameters:
+        corr_matrix (pd.DataFrame): Correlation matrix to plot.
+        figsize (tuple): Figure size (width, height).
+        annot (bool): Whether to annotate cells with correlation values.
+        fmt (str): String format for annotation.
+        cmap (str or None): Matplotlib colormap name; if None, default palette.
+        title (str): Title of the plot.
+
+    Returns:
+        matplotlib.figure.Figure: The generated figure object.
+    """
+    fig, ax = plt.subplots(figsize=figsize)
+    sns.heatmap(corr_matrix, annot=annot, fmt=fmt, cmap=cmap, ax=ax)
+    ax.set_title(title)
+    plt.tight_layout()
+    return fig
+
+
+def get_top_correlations(
+    corr_matrix: pd.DataFrame,
+    n: int = 10,
+    abs_values: bool = True
+) -> pd.DataFrame:
+    """
+    Retrieve the top N correlated feature pairs from a correlation matrix.
+
+    Parameters:
+        corr_matrix (pd.DataFrame): Correlation matrix.
+        n (int): Number of top pairs to return.
+        abs_values (bool): If True, sort by absolute correlation; else by actual value.
+
+    Returns:
+        pd.DataFrame: DataFrame with columns ['feature_1', 'feature_2', 'correlation'].
+    """
+    # Unstack matrix and reset index
+    corrs = corr_matrix.unstack().reset_index()
+    corrs.columns = ['feature_1', 'feature_2', 'correlation']
+    # Remove self-correlations
+    corrs = corrs[corrs['feature_1'] != corrs['feature_2']]
+    # Drop duplicate pairs (A,B and B,A)
+    corrs['abs_corr'] = corrs['correlation'].abs()
+    corrs_sorted = corrs.drop_duplicates(subset=['abs_corr', 'feature_1']).sort_values(
+        'abs_corr' if abs_values else 'correlation',
+        ascending=False
+    )
+    return corrs_sorted.head(n)[['feature_1', 'feature_2', 'correlation']]

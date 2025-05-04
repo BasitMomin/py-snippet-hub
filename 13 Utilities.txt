@@ -1,0 +1,89 @@
+'''
+Utilities Snippets
+------------------
+
+Functions and helpers for:
+- Setting up standardized logging
+- Timing function execution via decorator
+
+Usage:
+    from utilities import setup_logging, timer
+
+Placeholders:
+    logger_name: str, name of the logger
+    log_file: str, path to log file
+    level: logging level (e.g., logging.INFO)
+'''
+
+import logging
+import functools
+import time
+
+
+def setup_logging(
+    logger_name: str = __name__,
+    log_file: str = None,
+    level: int = logging.INFO,
+    fmt: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+) -> logging.Logger:
+    """
+    Configure and return a logger with console (and optional file) handlers.
+
+    Parameters:
+        logger_name (str): Name of the logger to retrieve.
+        log_file (str or None): If provided, path to file for logging output.
+        level (int): Logging level (e.g., logging.INFO).
+        fmt (str): Log message format.
+
+    Returns:
+        logging.Logger: Configured logger instance.
+    """
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(level)
+    formatter = logging.Formatter(fmt)
+
+    # Clear existing handlers
+    if logger.handlers:
+        logger.handlers.clear()
+
+    # Console handler
+    ch = logging.StreamHandler()
+    ch.setLevel(level)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    # File handler (optional)
+    if log_file:
+        fh = logging.FileHandler(log_file)
+        fh.setLevel(level)
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+
+    return logger
+
+
+def timer(func=None, *, prefix: str = ""):
+    """
+    Decorator to measure execution time of functions.
+
+    Usage:
+        @timer(prefix="MyFunc")
+        def my_function(...):
+            pass
+    """
+    def decorate(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            start = time.time()
+            result = fn(*args, **kwargs)
+            elapsed = time.time() - start
+            msg = f"{prefix} {fn.__name__} executed in {elapsed:.4f} seconds"
+            # Use root logger by default
+            logging.getLogger().info(msg)
+            return result
+        return wrapper
+
+    # Allow decorator without parentheses
+    if func:
+        return decorate(func)
+    return decorate
